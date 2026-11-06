@@ -22,6 +22,7 @@ RUN export UV_TOOL_DIR=/opt/workspace-tools \
 
 COPY deploy/yt-dlp.conf /etc/yt-dlp.conf
 COPY skills/mdwiki/ /opt/hermes/skills/note-taking/mdwiki/
+COPY skills/research-agent/ /opt/hermes/skills/note-taking/research-agent/
 COPY deploy/telegram-link-dedup.patch /tmp/telegram-link-dedup.patch
 RUN cd /opt/hermes \
     && git apply --check /tmp/telegram-link-dedup.patch \

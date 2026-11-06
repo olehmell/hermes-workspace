@@ -70,6 +70,13 @@ To load skills from your workspace, add the directory containing their
 Use the path as Hermes sees it inside the container, such as
 `/workspace/.agents/skills`. Restart Hermes after changing the setting.
 
+The bundled `research-agent` skill delegates to
+`.agents/skills/research_agent/scripts/run.py` when the mounted vault contains
+the mdwiki research skill. It uses Graphify and the vault's own OKF helpers.
+For a plain Markdown workspace or an unavailable graph, it can search scoped
+notes with `rg` and cite the matching files. It saves a synthesis only when
+requested.
+
 ## Media and documents
 
 `yt-dlp` uses the bundled Node runtime and a private PO-token provider on the

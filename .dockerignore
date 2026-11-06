@@ -7,3 +7,5 @@ deploy/*
 !skills/
 !skills/mdwiki/
 !skills/mdwiki/SKILL.md
+!skills/research-agent/
+!skills/research-agent/SKILL.md
