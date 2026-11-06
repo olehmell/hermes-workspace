@@ -1,6 +1,9 @@
 services:
   hermes:
-    image: nousresearch/hermes-agent:v0.23.0@sha256:adb7890916de63245523492be8f68f9d2095fecbec4e2a6dab7960381f0fc002
+    build: .
+    depends_on:
+      ytdlp-pot:
+        condition: service_healthy
     command: [gateway, run]
     restart: unless-stopped
     stop_grace_period: 90s
@@ -22,3 +25,44 @@ services:
           create_host_path: false
     logging:
       driver: local
+
+  ytdlp-pot:
+    image: brainicism/bgutil-ytdlp-pot-provider:2.0.0-node@sha256:ed86b6fdd5e430ddd7c8ce1adb55e1ab54db7c7dbc1bcbf3a82454a85b971164
+    init: true
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4416/ping').then(r => { if (!r.ok) process.exitCode = 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: local
+
+  camofox:
+    profiles: [browser]
+    image: ghcr.io/jo-inc/camofox-browser:1.18.1@sha256:cff2c1432b609bde9c9d0b91e5b924dae0799d3c7bc9d468c0bc949325beaf2a
+    init: true
+    restart: unless-stopped
+    environment:
+      CAMOFOX_PORT: "9377"
+      CAMOFOX_CRASH_REPORT_ENABLED: "false"
+      CAMOFOX_PROFILE_DIR: /root/.camofox/profiles
+      MAX_OLD_SPACE_SIZE: "256"
+      MAX_SESSIONS: "3"
+      MAX_TABS_PER_SESSION: "3"
+      MAX_TABS_GLOBAL: "6"
+      BROWSER_IDLE_TIMEOUT_MS: "120000"
+    volumes:
+      - camofox-data:/root/.camofox
+    mem_limit: 1g
+    shm_size: 256m
+    healthcheck:
+      test: [CMD, curl, -fsS, http://127.0.0.1:9377/health]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: local
+
+volumes:
+  camofox-data:

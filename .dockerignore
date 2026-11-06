@@ -1,0 +1,9 @@
+*
+!Dockerfile
+!deploy/
+deploy/*
+!deploy/yt-dlp.conf
+!deploy/telegram-link-dedup.patch
+!skills/
+!skills/mdwiki/
+!skills/mdwiki/SKILL.md

@@ -1,0 +1,14 @@
+--- a/plugins/platforms/telegram/telegram_entities.py
++++ b/plugins/platforms/telegram/telegram_entities.py
+@@ -58,5 +58,10 @@
++    # Keep the first anchor for each hidden destination.
++    first_links: dict[str, tuple[int, int, str]] = {}
++    for start, end, url in sorted(links):
++        first_links.setdefault(url, (start, end, url))
++
+     expanded = text
+-    for _start, end, url in sorted(links, reverse=True):
++    for _start, end, url in reversed(first_links.values()):
+         inline = f" ({url})"
+         if expanded[end:].startswith(inline):
+             continue
