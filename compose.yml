@@ -1,0 +1,24 @@
+services:
+  hermes:
+    image: nousresearch/hermes-agent:v0.23.0@sha256:adb7890916de63245523492be8f68f9d2095fecbec4e2a6dab7960381f0fc002
+    command: [gateway, run]
+    restart: unless-stopped
+    stop_grace_period: 90s
+    working_dir: /workspace
+    environment:
+      HERMES_UID: ${HERMES_UID:?Set HERMES_UID to your host user ID}
+      HERMES_GID: ${HERMES_GID:?Set HERMES_GID to your host group ID}
+      HERMES_DASHBOARD: "0"
+    volumes:
+      - type: bind
+        source: ${HERMES_DATA_DIR:-./data}
+        target: /opt/data
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${HERMES_WORKSPACE_DIR:-./workspace}
+        target: /workspace
+        bind:
+          create_host_path: false
+    logging:
+      driver: local

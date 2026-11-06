@@ -1,0 +1,6 @@
+/.env
+/.env.*
+/data/
+/workspace/
+/compose.override.yml
+/compose.override.yaml
