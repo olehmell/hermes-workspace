@@ -3,12 +3,13 @@
 import os
 import tempfile
 import unittest
+from unittest.mock import AsyncMock, Mock, patch
 
 # Keep test state separate even if run inside an installed Hermes environment.
 test_home = tempfile.TemporaryDirectory(prefix="hermes-telegram-test-")
 os.environ["HERMES_HOME"] = test_home.name
 
-from telegram import Message
+from telegram import Message, Update
 
 from gateway.config import PlatformConfig
 from gateway.platforms.base import MessageType
@@ -86,6 +87,60 @@ class HiddenLinks(unittest.TestCase):
         url = "https://example.com/article"
         self.assertEqual(self.event(url, [(0, len(url), url)]).text, url)
         self.assertEqual(self.event("звичайний текст").text, "звичайний текст")
+
+
+class TelegramSummaryRouting(unittest.IsolatedAsyncioTestCase):
+    url = "https://example.com/article"
+
+    async def route(self, text, *, enabled=True, authorized=True, private=True):
+        chat = {"id": 123, "type": "private", "first_name": "Test"}
+        if not private:
+            chat = {"id": -123, "type": "group", "title": "Test group"}
+        update = Update.de_json({
+            "update_id": 1,
+            "message": {
+                "message_id": 1,
+                "date": 1788500000,
+                "chat": chat,
+                "from": {"id": 123, "is_bot": False, "first_name": "Test"},
+                "text": text,
+            },
+        }, bot=None)
+        adapter = TelegramAdapter(PlatformConfig(enabled=True, token="offline-test"))
+        adapter._is_user_authorized_from_message = Mock(return_value=authorized)
+        adapter._gate_or_observe = Mock(return_value=True)
+        adapter._ensure_forum_commands = AsyncMock()
+        adapter._enqueue_text_event = Mock()
+        adapter.handle_message = AsyncMock()
+        with patch.dict(os.environ, {"HERMES_TELEGRAM_AUTO_SUMMARY": str(int(enabled))}):
+            await adapter._handle_text_message(update, None)
+        return adapter
+
+    async def test_bare_link_invokes_skill_command(self):
+        adapter = await self.route(self.url)
+        adapter._enqueue_text_event.assert_not_called()
+        adapter.handle_message.assert_awaited_once()
+        event = adapter.handle_message.await_args.args[0]
+        self.assertEqual(event.get_command(), "ukrainian-summary")
+        self.assertEqual(event.get_command_args(), self.url)
+
+    async def test_disabled_group_and_ordinary_text_keep_normal_routing(self):
+        for text, kwargs in [
+            (self.url, {"enabled": False}),
+            (self.url, {"private": False}),
+            (f"Compare this {self.url}", {}),
+            (f"{self.url}\nhttps://example.com/another", {}),
+        ]:
+            with self.subTest(text=text, **kwargs):
+                adapter = await self.route(text, **kwargs)
+                adapter.handle_message.assert_not_awaited()
+                adapter._enqueue_text_event.assert_called_once()
+                self.assertEqual(adapter._enqueue_text_event.call_args.args[0].text, text)
+
+    async def test_blocked_sender_does_not_invoke_skill(self):
+        adapter = await self.route(self.url, authorized=False)
+        adapter.handle_message.assert_not_awaited()
+        adapter._enqueue_text_event.assert_not_called()
 
 
 if __name__ == "__main__":

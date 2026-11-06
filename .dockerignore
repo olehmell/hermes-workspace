@@ -4,8 +4,11 @@
 deploy/*
 !deploy/yt-dlp.conf
 !deploy/telegram-link-dedup.patch
+!deploy/telegram-url-summary.patch
 !skills/
 !skills/mdwiki/
 !skills/mdwiki/SKILL.md
 !skills/research-agent/
 !skills/research-agent/SKILL.md
+!skills/ukrainian-summary/
+!skills/ukrainian-summary/SKILL.md

@@ -12,6 +12,9 @@ services:
       HERMES_UID: ${HERMES_UID:?Set HERMES_UID to your host user ID}
       HERMES_GID: ${HERMES_GID:?Set HERMES_GID to your host group ID}
       HERMES_DASHBOARD: "0"
+      HERMES_WRITE_SAFE_ROOT: /opt/data:/workspace
+      MDWIKI_ROOT: /workspace
+      HERMES_TELEGRAM_AUTO_SUMMARY: "${HERMES_TELEGRAM_AUTO_SUMMARY:-0}"
     volumes:
       - type: bind
         source: ${HERMES_DATA_DIR:-./data}

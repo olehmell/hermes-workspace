@@ -1,0 +1,20 @@
+--- a/plugins/platforms/telegram/adapter.py
++++ b/plugins/platforms/telegram/adapter.py
+@@ -6508,5 +6508,16 @@
+             return
+         await self._ensure_forum_commands(update.message)
+-        self._enqueue_text_event(await self._build_triggered_event(msg, update, MessageType.TEXT))
++        event = await self._build_triggered_event(msg, update, MessageType.TEXT)
++        text = msg.text.strip()
++        if (
++            os.getenv("HERMES_TELEGRAM_AUTO_SUMMARY") == "1"
++            and event.source.chat_type == "dm"
++            and re.fullmatch(r"https?://[^\s<>]+", text, flags=re.IGNORECASE)
++        ):
++            event.text = f"/ukrainian-summary {text}"
++            event.message_type = MessageType.COMMAND
++            await self.handle_message(event)
++            return
++        self._enqueue_text_event(event)
+
+     async def _handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

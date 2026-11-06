@@ -50,6 +50,28 @@ docker run --rm --network none -i --workdir /opt/hermes \
   - < tests/smoke_telegram_text_links.py
 ```
 
+### Save Ukrainian summaries from Telegram
+
+Point `HERMES_WORKSPACE_DIR` at your mdwiki checkout in the root Compose
+`.env`. Configure a model and Telegram in the Hermes setup wizard and
+restrict bot access to your Telegram user ID. Keep bot tokens, provider
+credentials, and cookies in the private Hermes data directory.
+
+Send `/ukrainian_summary https://example.com/article` in a direct chat with
+your bot. To make a message containing only a URL invoke the same skill,
+add `HERMES_TELEGRAM_AUTO_SUMMARY=1` to the root Compose `.env` and recreate
+the Hermes service.
+
+```sh
+docker compose build hermes
+docker compose up -d hermes
+```
+
+Hermes verifies the source, saves the Ukrainian Markdown summary in the
+vault's intake folder, and replies with the path and the note attached.
+Automatic routing applies to URL-only text in authorized direct chats.
+The normal Telegram command permissions still apply.
+
 ## Use your own workspace
 
 Hermes can read and write the contents of `workspace/`. The bundled `mdwiki`
